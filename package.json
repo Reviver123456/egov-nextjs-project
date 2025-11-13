@@ -1,0 +1,16 @@
+{
+  "name": "egov-nextjs-mongo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3010",
+    "build": "next build",
+    "start": "next start -p 3010"
+  },
+  "dependencies": {
+    "next": "13.5.8",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "mongoose": "^7.5.0"
+  }
+}

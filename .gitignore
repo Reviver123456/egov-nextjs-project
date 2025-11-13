@@ -1,0 +1,14 @@
+# Ignore all log files
+*.log
+
+# Ignore the 'build' directory
+build/
+
+# Ignore a specific file
+config.local.js
+
+# Ignore node_modules directory
+node_modules/
+
+# Un-ignore a specific file within an ignored directory
+!build/important_output.txt
