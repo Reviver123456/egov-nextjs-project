@@ -9,11 +9,12 @@ export default function Home() {
     async function run() {
       setLoading(true)
       setError(null)
+
       try {
         let appId = null
         let mToken = null
 
-        // ✅ ดึงจาก SDK ถ้ามี
+        // ✅ จาก SDK ถ้ามี
         if (
           window?.czpSdk &&
           typeof window.czpSdk.getAppId === "function" &&
@@ -21,27 +22,30 @@ export default function Home() {
         ) {
           appId = window.czpSdk.getAppId()
           mToken = window.czpSdk.getToken()
-          console.log("✔ SDK:", appId, mToken)
+          console.log("✔ จาก SDK:", appId, mToken)
         }
-        // ✅ ถ้าไม่มี SDK → fallback จาก URL
+
+        // ✅ fallback: จาก URL ถ้าไม่มี SDK
         if (!appId || !mToken) {
           const urlParams = new URLSearchParams(window.location.search)
           appId = urlParams.get('appId')
           mToken = urlParams.get('mToken')
-          console.log('[URL fallback] appId:', appId, 'mToken:', mToken)
+          console.log("✔ จาก URL fallback:", appId, mToken)
         }
 
         if (!appId || !mToken)
           throw new Error('Missing appId or mToken (SDK or URL)')
 
+        // 🚀 เรียก backend API
         const res = await fetch('/api/egov', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ appId, mToken })
+          body: JSON.stringify({ appId, mToken }),
         })
 
         const data = await res.json()
         if (!res.ok) throw new Error(data?.error || JSON.stringify(data))
+
         setResult(data)
       } catch (err) {
         setError(String(err))
@@ -61,7 +65,7 @@ export default function Home() {
       {loading && <p>Processing... (calling deproc)</p>}
       {error && <pre style={{ color: 'red' }}>{error}</pre>}
 
-      <h2>Saved result</h2>
+      <h2>Result</h2>
       <pre>{result ? JSON.stringify(result, null, 2) : 'No result yet'}</pre>
     </div>
   )
