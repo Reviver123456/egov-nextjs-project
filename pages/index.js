@@ -15,15 +15,14 @@ export default function Home() {
 
         // ✅ ดึงจาก SDK ถ้ามี
         if (
-          window.czpSdk &&
-          typeof window.czpSdk.getappId === 'function' &&
-          typeof window.czpSdk.getmToken === 'function'
+          window?.czpSdk &&
+          typeof window.czpSdk.getAppId === "function" &&
+          typeof window.czpSdk.getToken === "function"
         ) {
-          appId = window.czpSdk.getappId()
-          mToken = window.czpSdk.getmToken()
-          console.log('[CZP SDK] appId:', appId, 'mToken:', mToken)
+          appId = window.czpSdk.getAppId()
+          mToken = window.czpSdk.getToken()
+          console.log("✔ SDK:", appId, mToken)
         }
-
         // ✅ ถ้าไม่มี SDK → fallback จาก URL
         if (!appId || !mToken) {
           const urlParams = new URLSearchParams(window.location.search)
