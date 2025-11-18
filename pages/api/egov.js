@@ -7,8 +7,12 @@ export default async function handler(req, res) {
   const { appId, mToken } = req.body || {}
   if (!appId || !mToken) return res.status(400).json({ error: 'appId and mToken are required in body' })
 
-  const consumerKey = process.env.CONSUMER_KEY
-  const consumerSecret = process.env.CONSUMER_SECRET
+  // const consumerKey = process.env.CONSUMER_KEY
+  // const consumerSecret = process.env.CONSUMER_SECRET
+
+  const consumerKey = "2907f3d6-19e5-4545-a058-b7077f342bfa"
+  const consumerSecret = "TP0mPcTfAFJ"
+
   if (!consumerKey || !consumerSecret) {
     return res.status(500).json({ error: 'Missing CONSUMER_KEY or CONSUMER_SECRET in environment' })
   }
