@@ -5,45 +5,44 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
+  const [appId, setAppId] = useState(null)
+  const [mToken, setMToken] = useState(null)
+
   useEffect(() => {
     async function run() {
       setLoading(true)
       setError(null)
+
       try {
-        let appId = null
-        let mToken = null
+        // ----------------------------------------
+        // ✅ รับค่าจาก URL เท่านั้น
+        // ----------------------------------------
+        const params = new URLSearchParams(window.location.search)
+        const _appId = params.get('appId')
+        const _mToken = params.get('mToken')
 
-        // ✅ ดึงจาก SDK ถ้ามี
-        if (
-          window.czpSdk &&
-          typeof window.czpSdk.getappId === 'function' &&
-          typeof window.czpSdk.getmToken === 'function'
-        ) {
-          appId = window.czpSdk.getappId()
-          mToken = window.czpSdk.getmToken()
-          console.log('[CZP SDK] appId:', appId, 'mToken:', mToken)
+        setAppId(_appId)
+        setMToken(_mToken)
+
+        if (!_appId || !_mToken) {
+          throw new Error('Missing appId or mToken in URLSearchParams')
         }
 
-        // ✅ ถ้าไม่มี SDK → fallback จาก URL
-        if (!appId || !mToken) {
-          const urlParams = new URLSearchParams(window.location.search)
-          appId = urlParams.get('appId')
-          mToken = urlParams.get('mToken')
-          console.log('[URL fallback] appId:', appId, 'mToken:', mToken)
-        }
-
-        if (!appId || !mToken)
-          throw new Error('Missing appId or mToken (SDK or URL)')
-
+        // ----------------------------------------
+        // ✅ เรียก API
+        // ----------------------------------------
         const res = await fetch('/api/egov', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ appId, mToken })
+          body: JSON.stringify({ appId: _appId, mToken: _mToken })
         })
 
         const data = await res.json()
+
         if (!res.ok) throw new Error(data?.error || JSON.stringify(data))
+
         setResult(data)
+
       } catch (err) {
         setError(String(err))
       } finally {
@@ -58,11 +57,17 @@ export default function Home() {
     <div style={{ maxWidth: 900, margin: 'auto', padding: 20 }}>
       <h1>DGA Demo</h1>
 
+      <h2>URL Parameters</h2>
+      <pre>{JSON.stringify({ appId, mToken }, null, 2)}</pre>
+
       <h2>Status</h2>
-      {loading && <p>Processing... (calling deproc)</p>}
+      {loading && <p>Processing... (validate → deproc)</p>}
       {error && <pre style={{ color: 'red' }}>{error}</pre>}
 
-      <h2>Saved result</h2>
+      <h2>Token (From Backend)</h2>
+      <pre>{result?.token || 'No token yet'}</pre>
+
+      <h2>Full Result</h2>
       <pre>{result ? JSON.stringify(result, null, 2) : 'No result yet'}</pre>
     </div>
   )
