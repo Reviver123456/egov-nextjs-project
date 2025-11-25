@@ -17,9 +17,7 @@ export default async function handler(req, res) {
   const agentId = "8a816448-0207-45f4-8613-65b0ad80afd0"
 
   try {
-    // -----------------------------------------------------
-    // STEP 1: GEN TOKEN (VALIDATE)
-    // -----------------------------------------------------
+
     const validateUrl =
       `https://api.egov.go.th/ws/auth/validate?ConsumerSecret=${encodeURIComponent(
         consumerSecret
@@ -39,7 +37,6 @@ export default async function handler(req, res) {
       return res.status(502).json({ step: 'validate', error: validateJson })
     }
 
-    // 🟢 Token ที่ต้องส่งกลับไปให้ frontend
     const token =
       validateJson?.Result ||
       validateJson?.result ||
@@ -49,9 +46,6 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Token not found' })
     }
 
-    // -----------------------------------------------------
-    // STEP 2: DEPROC
-    // -----------------------------------------------------
     const deprocUrl =
       'https://api.egov.go.th/ws/dga/czp/uat/v1/core/shield/data/deproc'
 
@@ -84,15 +78,12 @@ export default async function handler(req, res) {
       notification: citizen.notification
     } : null
 
-    // -----------------------------------------------------
-    // STEP 3: ส่ง Response กลับไป
-    // -----------------------------------------------------
     return res.status(200).json({
       ok: true,
-      token,   // 🟩 ส่งกลับไป
-      appId,   // 🟩 ส่งกลับไป
-      mToken,  // 🟩 ส่งกลับไป
-      saved    // 🟩 ผลลัพธ์จาก deproc
+      token,  
+      appId,   
+      mToken,  
+      saved   
     })
 
   } catch (err) {

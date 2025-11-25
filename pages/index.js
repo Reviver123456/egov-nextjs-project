@@ -14,9 +14,6 @@ export default function Home() {
       setError(null)
 
       try {
-        // ----------------------------------------
-        // ✅ รับค่าจาก URL เท่านั้น
-        // ----------------------------------------
         const params = new URLSearchParams(window.location.search)
         const _appId = params.get('appId')
         const _mToken = params.get('mToken')
