@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react'
 
+function safeJsonParse(text) {
+  if (!text || !text.trim()) return null
+  try {
+    return JSON.parse(text)
+  } catch {
+    return null
+  }
+}
+
 export default function Home() {
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -25,21 +34,31 @@ export default function Home() {
           throw new Error('Missing appId or mToken in URLSearchParams')
         }
 
-        // ----------------------------------------
-        // ✅ เรียก API
-        // ----------------------------------------
         const res = await fetch('/api/egov', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ appId: _appId, mToken: _mToken })
         })
 
-        const data = await res.json()
+        // ✅ กัน JSON ว่าง/ไม่ใช่ JSON
+        const text = await res.text()
+        const data = safeJsonParse(text)
 
-        if (!res.ok) throw new Error(data?.error || JSON.stringify(data))
+        if (!res.ok) {
+          // ถ้า backend ส่ง JSON จะอ่านได้ / ถ้าไม่ส่งจะโชว์ text ดิบ
+          throw new Error(
+            (data && (data.error || JSON.stringify(data))) ||
+              text ||
+              `HTTP ${res.status}`
+          )
+        }
+
+        // ✅ กรณี ok แต่ body ว่าง
+        if (!data) {
+          throw new Error('Backend returned empty body (not JSON).')
+        }
 
         setResult(data)
-
       } catch (err) {
         setError(String(err))
       } finally {
