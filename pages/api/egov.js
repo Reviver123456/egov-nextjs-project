@@ -13,7 +13,7 @@ function safeJsonParse(text) {
 async function readResp(resp) {
   const contentType = resp.headers.get('content-type') || ''
   const text = await resp.text().catch(() => '')
-  const json = contentType.includes('application/json') ? safeJsonParse(text) : safeJsonParse(text)
+  const json = safeJsonParse(text) // parse ได้ก็เอา ไม่ได้ก็ null
   return { contentType, text, json }
 }
 
@@ -27,25 +27,25 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'appId and mToken are required' })
   }
 
-  // แนะนำย้ายไป .env (แต่ใส่ค่าเดิมไว้ให้ทำงานได้ทันที)
-  const consumerKey = process.env.EGOV_CONSUMER_KEY || '2907f3d6-19e5-4545-a058-b7077f342bfa'
-  const consumerSecret = process.env.EGOV_CONSUMER_SECRET || 'TP0mPcTfAFJ'
-  const agentId = process.env.EGOV_AGENT_ID || '8a816448-0207-45f4-8613-65b0ad80afd0'
+  const consumerKey =
+    process.env.EGOV_CONSUMER_KEY || '2907f3d6-19e5-4545-a058-b7077f342bfa'
+  const consumerSecret =
+    process.env.EGOV_CONSUMER_SECRET || 'TP0mPcTfAFJ'
+  const agentId =
+    process.env.EGOV_AGENT_ID || '8a816448-0207-45f4-8613-65b0ad80afd0'
 
   try {
-    // ถ้าจะใช้ DB จริงค่อยเปิด
     // await connectToDatabase()
 
-    // 1) Validate เพื่อเอา Token
-    const validateUrl =
-      `https://api.egov.go.th/ws/auth/validate?ConsumerSecret=${encodeURIComponent(
-        consumerSecret
-      )}&AgentID=${encodeURIComponent(agentId)}`
+    // ✅ 1) Validate เพื่อเอา Token (แก้ให้ถูกต้อง: POST + header)
+    const validateUrl = 'https://api.egov.go.th/ws/auth/validate'
 
     const validateResp = await fetch(validateUrl, {
-      method: 'GET',
+      method: 'POST',
       headers: {
         'Consumer-Key': consumerKey,
+        'Consumer-Secret': consumerSecret,
+        'Agent-ID': agentId,
         'Accept': 'application/json'
       }
     })
@@ -64,7 +64,8 @@ export default async function handler(req, res) {
     const token =
       validateBody.json?.Result ||
       validateBody.json?.result ||
-      validateBody.json?.Token
+      validateBody.json?.Token ||
+      validateBody.json?.token
 
     if (!token) {
       return res.status(500).json({
@@ -75,7 +76,8 @@ export default async function handler(req, res) {
     }
 
     // 2) deproc
-    const deprocUrl = 'https://api.egov.go.th/ws/dga/czp/uat/v1/core/shield/data/deproc'
+    const deprocUrl =
+      'https://api.egov.go.th/ws/dga/czp/uat/v1/core/shield/data/deproc'
 
     const deprocResp = await fetch(deprocUrl, {
       method: 'POST',
