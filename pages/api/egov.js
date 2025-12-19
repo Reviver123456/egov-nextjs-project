@@ -13,8 +13,18 @@ function safeJsonParse(text) {
 async function readResp(resp) {
   const contentType = resp.headers.get('content-type') || ''
   const text = await resp.text().catch(() => '')
-  const json = safeJsonParse(text) // parse ได้ก็เอา ไม่ได้ก็ null
+  const json = safeJsonParse(text)
   return { contentType, text, json }
+}
+
+function pickToken(validateJson) {
+  return (
+    validateJson?.Result ||
+    validateJson?.result ||
+    validateJson?.Token ||
+    validateJson?.token ||
+    null
+  )
 }
 
 export default async function handler(req, res) {
@@ -27,6 +37,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'appId and mToken are required' })
   }
 
+  // ✅ แนะนำ: ใส่ใน .env เท่านั้น (ห้าม hardcode secret ในโปรดักชัน)
   const consumerKey =
     process.env.EGOV_CONSUMER_KEY || '2907f3d6-19e5-4545-a058-b7077f342bfa'
   const consumerSecret =
@@ -37,17 +48,20 @@ export default async function handler(req, res) {
   try {
     // await connectToDatabase()
 
-    // ✅ 1) Validate เพื่อเอา Token (แก้ให้ถูกต้อง: POST + header)
-    const validateUrl = 'https://api.egov.go.th/ws/auth/validate'
+    // ✅ 1) Validate เพื่อเอา Token (ต้องเป็น GET + query string)
+    const validateUrl =
+      `https://api.egov.go.th/ws/auth/validate` +
+      `?ConsumerSecret=${encodeURIComponent(consumerSecret)}` +
+      `&AgentID=${encodeURIComponent(agentId)}`
 
     const validateResp = await fetch(validateUrl, {
-      method: 'POST',
+      method: 'GET',
       headers: {
         'Consumer-Key': consumerKey,
-        'Consumer-Secret': consumerSecret,
-        'Agent-ID': agentId,
-        'Accept': 'application/json'
-      }
+        'Accept': 'application/json',
+        // บางระบบต้องการ content-type นี้แม้เป็น GET
+        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+      },
     })
 
     const validateBody = await readResp(validateResp)
@@ -57,25 +71,20 @@ export default async function handler(req, res) {
         step: 'validate',
         status: validateResp.status,
         contentType: validateBody.contentType,
-        error: validateBody.json ?? validateBody.text ?? null
+        error: validateBody.json ?? validateBody.text ?? null,
       })
     }
 
-    const token =
-      validateBody.json?.Result ||
-      validateBody.json?.result ||
-      validateBody.json?.Token ||
-      validateBody.json?.token
-
+    const token = pickToken(validateBody.json)
     if (!token) {
       return res.status(500).json({
         step: 'validate',
         error: 'Token not found',
-        raw: validateBody.json ?? validateBody.text ?? null
+        raw: validateBody.json ?? validateBody.text ?? null,
       })
     }
 
-    // 2) deproc
+    // ✅ 2) deproc
     const deprocUrl =
       'https://api.egov.go.th/ws/dga/czp/uat/v1/core/shield/data/deproc'
 
@@ -85,9 +94,9 @@ export default async function handler(req, res) {
         'Consumer-Key': consumerKey,
         'Token': token,
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
       },
-      body: JSON.stringify({ appId, mToken })
+      body: JSON.stringify({ appId, mToken }),
     })
 
     const deprocBody = await readResp(deprocResp)
@@ -97,11 +106,12 @@ export default async function handler(req, res) {
         step: 'deproc',
         status: deprocResp.status,
         contentType: deprocBody.contentType,
-        error: deprocBody.json ?? deprocBody.text ?? null
+        error: deprocBody.json ?? deprocBody.text ?? null,
       })
     }
 
-    const citizen = deprocBody.json?.result || deprocBody.json?.data || deprocBody.json
+    const citizen =
+      deprocBody.json?.result || deprocBody.json?.data || deprocBody.json
 
     const saved = citizen
       ? {
@@ -112,16 +122,13 @@ export default async function handler(req, res) {
           dateOfBirthString: citizen.dateOfBirthString,
           mobile: citizen.mobile,
           email: citizen.email,
-          notification: citizen.notification
+          notification: citizen.notification,
         }
       : null
 
     return res.status(200).json({
       ok: true,
-      token,
-      appId,
-      mToken,
-      saved
+      saved,
     })
   } catch (err) {
     console.error(err)
