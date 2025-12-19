@@ -1,5 +1,3 @@
-
-
 import connectToDatabase from '../../lib/db'
 import User from '../../models/User'
 
@@ -15,7 +13,7 @@ function safeJsonParse(text) {
 async function readResp(resp) {
   const contentType = resp.headers.get('content-type') || ''
   const text = await resp.text().catch(() => '')
-  const json = safeJsonParse(text)
+  const json = contentType.includes('application/json') ? safeJsonParse(text) : safeJsonParse(text)
   return { contentType, text, json }
 }
 
@@ -29,22 +27,48 @@ function pickToken(validateJson) {
   )
 }
 
+function pickCitizen(deprocJson) {
+  // รองรับหลายรูปแบบเหมือนฝั่งตัวอย่าง
+  const root = deprocJson ?? null
+  const cand =
+    root?.result ||
+    root?.Result ||
+    root?.data ||
+    root?.Data ||
+    root ||
+    null
+
+  // ถ้า cand ยังเป็น wrapper ที่มี result ซ้อนอีกชั้น
+  return cand?.result || cand?.data || cand
+}
+
+function maskToken(t) {
+  if (!t || typeof t !== 'string') return null
+  if (t.length <= 8) return '********'
+  return `${t.slice(0, 4)}********${t.slice(-4)}`
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   const { appId, mToken } = req.body || {}
   if (!appId || !mToken) return res.status(400).json({ error: 'appId and mToken are required' })
 
-  // ✅ แนะนำให้ใช้ .env จริง (อย่า hardcode secret ในโปรดักชัน)
-  const consumerKey =
-    process.env.EGOV_CONSUMER_KEY || '2907f3d6-19e5-4545-a058-b7077f342bfa'
-  const consumerSecret =
-    process.env.EGOV_CONSUMER_SECRET || 'TP0mPcTfAFJ'
-  const agentId =
-    process.env.EGOV_AGENT_ID || '8a816448-0207-45f4-8613-65b0ad80afd0'
+  const consumerKey = process.env.EGOV_CONSUMER_KEY
+  const consumerSecret = process.env.EGOV_CONSUMER_SECRET
+  const agentId = process.env.EGOV_AGENT_ID
+
+  if (!consumerKey || !consumerSecret || !agentId) {
+    return res.status(500).json({
+      status: 'error',
+      message: 'Missing EGOV env (EGOV_CONSUMER_KEY / EGOV_CONSUMER_SECRET / EGOV_AGENT_ID)',
+    })
+  }
+
+  const debugInfo = { step1: null, step2: null, step3: false }
 
   try {
-
+    // ✅ Step 1: validate -> token
     const validateUrl =
       `https://api.egov.go.th/ws/auth/validate` +
       `?ConsumerSecret=${encodeURIComponent(consumerSecret)}` +
@@ -54,7 +78,7 @@ export default async function handler(req, res) {
       method: 'GET',
       headers: {
         'Consumer-Key': consumerKey,
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
     })
 
@@ -78,19 +102,21 @@ export default async function handler(req, res) {
       })
     }
 
-    // ✅ 2) deproc
-    const deprocUrl =
-      'https://api.egov.go.th/ws/dga/czp/uat/v1/core/shield/data/deproc'
+    debugInfo.step1 = maskToken(token)
+
+    // ✅ Step 2: deproc -> profile (สำคัญ: ต้องเป็น AppId/MToken)
+    const deprocUrl = process.env.DEPROC_API_URL
+      || 'https://api.egov.go.th/ws/dga/czp/uat/v1/core/shield/data/deproc'
 
     const deprocResp = await fetch(deprocUrl, {
       method: 'POST',
       headers: {
         'Consumer-Key': consumerKey,
-        'Token': token,
+        Token: token,
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
-      body: JSON.stringify({ appId, mToken }),
+      body: JSON.stringify({ AppId: appId, MToken: mToken }), // ✅ เหมือนตัวอย่าง
     })
 
     const deprocBody = await readResp(deprocResp)
@@ -104,30 +130,60 @@ export default async function handler(req, res) {
       })
     }
 
-    const citizen =
-      deprocBody.json?.result || deprocBody.json?.data || deprocBody.json
+    debugInfo.step2 = deprocBody.json ?? { raw: deprocBody.text }
 
-    const saved = citizen
-      ? {
-          userId: citizen.userId,
-          citizenId: citizen.citizenId,
-          firstName: citizen.firstName,
-          lastName: citizen.lastName,
-          dateOfBirthString: citizen.dateOfBirthString,
-          mobile: citizen.mobile,
-          email: citizen.email,
-          notification: citizen.notification,
-        }
-      : null
+    const citizen = pickCitizen(deprocBody.json)
+    if (!citizen) {
+      throw new Error('Deproc returned NULL (Token expired / wrong response shape / wrong body keys)')
+    }
 
+    // ✅ Step 3: Save DB (upsert เหมือนตัวอย่าง Express)
+    await connectToDatabase()
+
+    const saved = {
+      userId: citizen.userId,
+      citizenId: citizen.citizenId,
+      firstName: citizen.firstName,
+      lastName: citizen.lastName,
+      dateOfBirthString: citizen.dateOfBirthString,
+      mobile: citizen.mobile,
+      email: citizen.email,
+      notification: citizen.notification,
+    }
+
+    // อัปเดตตาม citizenId (เหมือน ON CONFLICT citizen_id)
+    await User.findOneAndUpdate(
+      { citizenId: saved.citizenId },
+      {
+        $set: {
+          ...saved,
+          appId, // ถ้าคุณอยากเก็บ appId ด้วย
+          updatedAt: new Date(),
+        },
+        $setOnInsert: { createdAt: new Date() },
+      },
+      { upsert: true, new: true }
+    )
+
+    debugInfo.step3 = true
 
     return res.status(200).json({
-      ok: true,
-      token,
-      saved,
+      status: 'success',
+      message: 'Login successful',
+      debug: debugInfo,
+      data: {
+        firstName: saved.firstName,
+        lastName: saved.lastName,
+        userId: saved.userId,
+        appId,
+      },
     })
   } catch (err) {
     console.error(err)
-    return res.status(500).json({ error: err?.message || 'Unexpected error' })
+    return res.status(500).json({
+      status: 'error',
+      message: err?.message || 'Unexpected error',
+      debug: debugInfo,
+    })
   }
 }
