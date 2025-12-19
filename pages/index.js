@@ -23,7 +23,6 @@ function monospaceStyle() {
 }
 
 function Icon({ type }) {
-  // Minimal inline icons (no deps)
   const base = { width: 18, height: 18, display: 'inline-block' }
   if (type === 'ok')
     return (
@@ -247,8 +246,7 @@ export default function Home() {
   const [showToken, setShowToken] = useState(false)
   const [copied, setCopied] = useState(false)
 
-  // step state
-  const [step, setStep] = useState('validate') // validate | deproc | save | done
+  const [step, setStep] = useState('validate') 
   const [failedStep, setFailedStep] = useState(null)
 
   const ranRef = useRef(false)
@@ -314,19 +312,14 @@ export default function Home() {
         throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg))
       }
 
-      // payload: เวอร์ชันใหม่ backend จะส่ง status/message/debug/data
-      // แต่รองรับของเดิมที่ส่ง token/saved ด้วย
       const payload = json ?? {}
-      setStep('deproc') // UI only (backend ทำครบในครั้งเดียว)
+      setStep('deproc') 
 
-      // token from backend
       const token =
         payload?.token ||
-        payload?.debug?.step1 || // เผื่อ backend ส่ง masked
-        null
+        payload?.debug?.step1 || 
       setBackendToken(payload?.token || null)
 
-      // citizen saved object (รองรับทั้ง data/saved)
       const citizenSaved = payload?.saved || payload?.data || null
       setSaved(citizenSaved)
 
@@ -387,7 +380,6 @@ export default function Home() {
       }}
     >
       <div style={{ maxWidth: 980, margin: '0 auto', padding: 22 }}>
-        {/* Header */}
         <div
           style={{
             background: '#ffffff',
@@ -432,7 +424,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Error */}
         {error && (
           <div
             style={{

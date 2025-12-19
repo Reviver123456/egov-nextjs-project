@@ -28,7 +28,6 @@ function pickToken(validateJson) {
 }
 
 function pickCitizen(deprocJson) {
-  // รองรับหลายรูปแบบเหมือนฝั่งตัวอย่าง
   const root = deprocJson ?? null
   const cand =
     root?.result ||
@@ -37,8 +36,6 @@ function pickCitizen(deprocJson) {
     root?.Data ||
     root ||
     null
-
-  // ถ้า cand ยังเป็น wrapper ที่มี result ซ้อนอีกชั้น
   return cand?.result || cand?.data || cand
 }
 
@@ -104,7 +101,7 @@ export default async function handler(req, res) {
 
     debugInfo.step1 = maskToken(token)
 
-    // ✅ Step 2: deproc -> profile (สำคัญ: ต้องเป็น AppId/MToken)
+    // ✅ Step 2: deproc -> profile 
     const deprocUrl = process.env.DEPROC_API_URL
       || 'https://api.egov.go.th/ws/dga/czp/uat/v1/core/shield/data/deproc'
 
@@ -116,7 +113,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
-      body: JSON.stringify({ AppId: appId, MToken: mToken }), // ✅ เหมือนตัวอย่าง
+      body: JSON.stringify({ AppId: appId, MToken: mToken }), 
     })
 
     const deprocBody = await readResp(deprocResp)
@@ -137,7 +134,7 @@ export default async function handler(req, res) {
       throw new Error('Deproc returned NULL (Token expired / wrong response shape / wrong body keys)')
     }
 
-    // ✅ Step 3: Save DB (upsert เหมือนตัวอย่าง Express)
+    // ✅ Step 3: Save DB 
     await connectToDatabase()
 
     const saved = {
