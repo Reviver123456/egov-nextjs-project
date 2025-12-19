@@ -3,7 +3,7 @@ services:
   app:
     build: .
     ports:
-      - '3010:3010'
+      - '3019:3019'
     env_file:
       - .env
     depends_on:
