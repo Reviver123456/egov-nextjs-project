@@ -345,7 +345,7 @@ export default function Home() {
       if (!appId || !mToken) throw new Error('ไม่พบพารามิเตอร์ appId หรือ mToken ใน URL')
 
       // ✅ ยิงตรงไปที่ endpoint ที่ต้องการ
-      const ENDPOINT = 'https://czp-staging.biza.me/test4/api/egov/'
+      const ENDPOINT = 'https://czp-staging.biza.me/test6/api/egov/'
 
       const res = await fetch(ENDPOINT, {
         method: 'POST',
