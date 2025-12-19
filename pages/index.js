@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useRef, useState } from 'react'
 
 function safeJsonParse(text) {
@@ -61,6 +63,10 @@ export default function Home() {
   const [rawOpen, setRawOpen] = useState(false)
   const [debug, setDebug] = useState(null)
 
+  // show/hide token
+  const [showToken, setShowToken] = useState(false)
+  const [copied, setCopied] = useState(false)
+
   // กันยิงซ้ำใน dev (React StrictMode)
   const ranRef = useRef(false)
 
@@ -76,6 +82,8 @@ export default function Home() {
       setBackendToken(null)
       setSaved(null)
       setDebug(null)
+      setShowToken(false)
+      setCopied(false)
 
       try {
         const params = new URLSearchParams(window.location.search)
@@ -108,19 +116,18 @@ export default function Home() {
         })
 
         if (!res.ok) {
-          // รองรับหลายรูปแบบ error จาก backend
           const msg =
             json?.error ||
             json?.message ||
-            json?.step ||
+            (json?.step ? `Step: ${json.step}` : null) ||
             text ||
             `Request failed: ${res.status}`
           throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg))
         }
 
-        // ถ้า backend คืน json ไม่ได้จริง ๆ ก็ใช้ text
         const payload = json ?? { raw: text }
 
+        // ✅ token จาก backend (มาจาก Result)
         setBackendToken(payload?.token || null)
         setSaved(payload?.saved || null)
       } catch (err) {
@@ -142,13 +149,34 @@ export default function Home() {
     return { text: 'Idle', bg: '#e5e7eb', color: '#374151' }
   })()
 
+  async function copyToken() {
+    if (!backendToken) return
+    try {
+      await navigator.clipboard.writeText(backendToken)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1200)
+    } catch {
+      // fallback
+      try {
+        const ta = document.createElement('textarea')
+        ta.value = backendToken
+        document.body.appendChild(ta)
+        ta.select()
+        document.execCommand('copy')
+        document.body.removeChild(ta)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 1200)
+      } catch {}
+    }
+  }
+
   return (
     <div style={{ maxWidth: 920, margin: '0 auto', padding: 20, background: '#f9fafb', minHeight: '100vh' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
         <div>
           <h1 style={{ margin: 0, fontSize: 28, color: '#111827' }}>DGA Demo</h1>
           <p style={{ margin: '6px 0 0', color: '#6b7280' }}>
-            แสดงผลแบบหัวข้อ (ไม่โชว์ JSON ยาว) + รองรับ response ที่ไม่ใช่ JSON
+            แสดงผลแบบหัวข้อ + โหมดแสดง token เต็มจาก Result (สำหรับ debug)
           </p>
         </div>
 
@@ -179,8 +207,57 @@ export default function Home() {
         <Field label="mToken" value={mToken ? mask(mToken, 10, 6) : '-'} />
       </Card>
 
-      <Card title="Token (From Backend)">
-        <Field label="token" value={backendToken ? mask(backendToken, 14, 8) : '-'} />
+      <Card
+        title="Token (From Validate Result)"
+        right={
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={() => setShowToken(v => !v)}
+              style={{
+                border: '1px solid #e5e7eb',
+                background: '#fff',
+                borderRadius: 10,
+                padding: '8px 10px',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              {showToken ? 'Hide' : 'Show'}
+            </button>
+
+            <button
+              onClick={copyToken}
+              disabled={!backendToken}
+              style={{
+                border: '1px solid #e5e7eb',
+                background: backendToken ? '#fff' : '#f3f4f6',
+                borderRadius: 10,
+                padding: '8px 10px',
+                fontWeight: 700,
+                cursor: backendToken ? 'pointer' : 'not-allowed'
+              }}
+            >
+              {copied ? 'Copied' : 'Copy'}
+            </button>
+          </div>
+        }
+      >
+        <Field
+          label="token"
+          value={
+            backendToken
+              ? (
+                showToken
+                  ? (
+                    <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace' }}>
+                      {backendToken}
+                    </span>
+                  )
+                  : mask(backendToken, 14, 8)
+              )
+              : '-'
+          }
+        />
       </Card>
 
       <Card title="Citizen Data (Saved)">

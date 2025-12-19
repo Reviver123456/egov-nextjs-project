@@ -1,3 +1,5 @@
+
+
 import connectToDatabase from '../../lib/db'
 import User from '../../models/User'
 
@@ -28,16 +30,12 @@ function pickToken(validateJson) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
-  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   const { appId, mToken } = req.body || {}
-  if (!appId || !mToken) {
-    return res.status(400).json({ error: 'appId and mToken are required' })
-  }
+  if (!appId || !mToken) return res.status(400).json({ error: 'appId and mToken are required' })
 
-  // ✅ แนะนำ: ใส่ใน .env เท่านั้น (ห้าม hardcode secret ในโปรดักชัน)
+  // ✅ แนะนำให้ใช้ .env จริง (อย่า hardcode secret ในโปรดักชัน)
   const consumerKey =
     process.env.EGOV_CONSUMER_KEY || '2907f3d6-19e5-4545-a058-b7077f342bfa'
   const consumerSecret =
@@ -46,9 +44,7 @@ export default async function handler(req, res) {
     process.env.EGOV_AGENT_ID || '8a816448-0207-45f4-8613-65b0ad80afd0'
 
   try {
-    // await connectToDatabase()
 
-    // ✅ 1) Validate เพื่อเอา Token (ต้องเป็น GET + query string)
     const validateUrl =
       `https://api.egov.go.th/ws/auth/validate` +
       `?ConsumerSecret=${encodeURIComponent(consumerSecret)}` +
@@ -59,8 +55,6 @@ export default async function handler(req, res) {
       headers: {
         'Consumer-Key': consumerKey,
         'Accept': 'application/json',
-        // บางระบบต้องการ content-type นี้แม้เป็น GET
-        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
       },
     })
 
@@ -126,8 +120,10 @@ export default async function handler(req, res) {
         }
       : null
 
+
     return res.status(200).json({
       ok: true,
+      token,
       saved,
     })
   } catch (err) {
