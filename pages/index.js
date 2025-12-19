@@ -82,12 +82,7 @@ function Icon({ type }) {
   if (type === 'mail')
     return (
       <svg style={base} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path
-          d="M4 6h16v12H4z"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinejoin="round"
-        />
+        <path d="M4 6h16v12H4z" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
         <path
           d="M4 7l8 6 8-6"
           stroke="currentColor"
@@ -131,12 +126,7 @@ function Icon({ type }) {
   if (type === 'calendar')
     return (
       <svg style={base} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path
-          d="M7 3v3M17 3v3M4 8h16"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
+        <path d="M7 3v3M17 3v3M4 8h16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
         <path
           d="M5 6h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z"
           stroke="currentColor"
@@ -316,7 +306,6 @@ export default function Home() {
   const [error, setError] = useState(null)
   const [deproc, setDeproc] = useState(null)
   const ranRef = useRef(false)
-  
 
   const status = useMemo(() => {
     if (loading) return { tone: 'warn', text: 'กำลังดึงข้อมูล Deproc…', icon: 'load' }
@@ -339,7 +328,6 @@ export default function Home() {
       { icon: 'id', label: 'Citizen ID', value: deproc.citizenId ?? '-', mono: true },
       { icon: 'calendar', label: 'วันเกิด', value: deproc.dateOfBirthString ?? '-', mono: true },
       { icon: 'bell', label: 'การแจ้งเตือน', value: deproc.notification ?? '-' },
-      // ถ้า backend ส่ง userId มาด้วยและถือว่าเป็น Deproc data ให้โชว์ได้ (เปิดไว้แบบเงื่อนไข)
       ...(deproc.userId ? [{ icon: 'id', label: 'User ID', value: deproc.userId, mono: true }] : []),
     ]
   }, [deproc, fullName])
@@ -355,11 +343,15 @@ export default function Home() {
       const mToken = params.get('mToken')
 
       if (!appId || !mToken) throw new Error('ไม่พบพารามิเตอร์ appId หรือ mToken ใน URL')
-      const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL
-      const res = await fetch(`${API_BASE}/api/egov`, {
+
+      // ✅ ยิงตรงไปที่ endpoint ที่ต้องการ
+      const ENDPOINT = 'https://czp-staging.biza.me/test4/api/egov/'
+
+      const res = await fetch(ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ appId, mToken }),
+        signal, // ✅ ให้ AbortController ใช้งานได้จริง
       })
 
       const text = await res.text().catch(() => '')
@@ -375,9 +367,15 @@ export default function Home() {
         throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg))
       }
 
-      // ✅ เอาเฉพาะข้อมูลจาก Deproc (พยายามอ่านจากหลาย key เผื่อ backend ส่งชื่อไม่เหมือนกัน)
+      // ✅ เอาเฉพาะข้อมูลจาก Deproc (รองรับหลายรูปแบบ)
       const payload = json ?? {}
-      const deprocData = payload?.data || payload?.deproc || payload?.citizen || payload?.saved || null
+      const deprocData =
+        payload?.data ||
+        payload?.deproc ||
+        payload?.citizen ||
+        payload?.saved ||
+        payload?.result ||
+        null
 
       if (!deprocData || typeof deprocData !== 'object') {
         throw new Error('ไม่พบข้อมูล Deproc ใน response (ตรวจสอบ payload.data / payload.deproc)')
@@ -522,7 +520,9 @@ export default function Home() {
                   fontWeight: 900,
                 }}
               >
-                {loading ? 'กำลังโหลดข้อมูลจาก Deproc…' : 'ยังไม่มีข้อมูล (กรุณาตรวจสอบว่า backend ส่งข้อมูล Deproc กลับมาหรือไม่)'}
+                {loading
+                  ? 'กำลังโหลดข้อมูลจาก Deproc…'
+                  : 'ยังไม่มีข้อมูล (กรุณาตรวจสอบว่า backend ส่งข้อมูล Deproc กลับมาหรือไม่)'}
               </div>
             ) : (
               <div
