@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+/* ----------------------------- utils ----------------------------- */
 function safeJsonParse(text) {
   if (!text || !text.trim()) return null
   try {
@@ -11,37 +12,159 @@ function safeJsonParse(text) {
   }
 }
 
-function mask(value, head = 10, tail = 6) {
-  if (!value) return '-'
-  const s = String(value)
-  if (s.length <= head + tail) return s
-  return `${s.slice(0, head)}…${s.slice(-tail)}`
-}
-
 function monospaceStyle() {
-  return { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace' }
+  return {
+    fontFamily:
+      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+  }
 }
 
+/* ----------------------------- UI bits ----------------------------- */
 function Icon({ type }) {
   const base = { width: 18, height: 18, display: 'inline-block' }
+
   if (type === 'ok')
     return (
-      <svg style={base} viewBox="0 0 24 24" fill="none">
-        <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <svg style={base} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M20 6L9 17l-5-5"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     )
+
   if (type === 'warn')
     return (
-      <svg style={base} viewBox="0 0 24 24" fill="none">
-        <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      <svg style={base} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     )
+
   if (type === 'load')
     return (
-      <svg style={base} viewBox="0 0 24 24" fill="none">
-        <path d="M12 2v4m0 12v4m10-10h-4M6 12H2m16.95 6.95-2.83-2.83M9.88 9.88 7.05 7.05m11.9 0-2.83 2.83M9.88 14.12l-2.83 2.83" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+      <svg style={base} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M12 2v4m0 12v4m10-10h-4M6 12H2m16.95 6.95-2.83-2.83M9.88 9.88 7.05 7.05m11.9 0-2.83 2.83M9.88 14.12l-2.83 2.83"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
       </svg>
     )
+
+  if (type === 'user')
+    return (
+      <svg style={base} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M20 21a8 8 0 1 0-16 0"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinejoin="round"
+        />
+      </svg>
+    )
+
+  if (type === 'mail')
+    return (
+      <svg style={base} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M4 6h16v12H4z"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M4 7l8 6 8-6"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinejoin="round"
+        />
+      </svg>
+    )
+
+  if (type === 'phone')
+    return (
+      <svg style={base} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M22 16.9v3a2 2 0 0 1-2.18 2A19.8 19.8 0 0 1 3 5.18 2 2 0 0 1 5.1 3h3a2 2 0 0 1 2 1.72c.12.86.32 1.7.6 2.5a2 2 0 0 1-.45 2.11L9.1 10.5a16 16 0 0 0 4.4 4.4l1.17-1.15a2 2 0 0 1 2.11-.45c.8.28 1.64.48 2.5.6A2 2 0 0 1 22 16.9Z"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    )
+
+  if (type === 'id')
+    return (
+      <svg style={base} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7Z"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M8 11h8M8 15h5"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+      </svg>
+    )
+
+  if (type === 'calendar')
+    return (
+      <svg style={base} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M7 3v3M17 3v3M4 8h16"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M5 6h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinejoin="round"
+        />
+      </svg>
+    )
+
+  if (type === 'bell')
+    return (
+      <svg style={base} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M15 17H9m9-2V11a6 6 0 1 0-12 0v4l-2 2h16l-2-2Z"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M10 21a2 2 0 0 0 4 0"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+      </svg>
+    )
+
   return null
 }
 
@@ -65,7 +188,7 @@ function Badge({ tone = 'neutral', children }) {
         border: `1px solid ${styles.bd}`,
         background: styles.bg,
         color: styles.fg,
-        fontWeight: 800,
+        fontWeight: 900,
         fontSize: 12,
         letterSpacing: 0.2,
         whiteSpace: 'nowrap',
@@ -76,50 +199,31 @@ function Badge({ tone = 'neutral', children }) {
   )
 }
 
-function Button({ variant = 'primary', disabled, onClick, children }) {
-  const v = {
-    primary: {
-      bg: disabled ? '#93c5fd' : '#2563eb',
-      fg: '#fff',
-      bd: 'transparent',
-      hover: disabled ? '#93c5fd' : '#1d4ed8',
-    },
-    ghost: {
-      bg: disabled ? '#f3f4f6' : '#fff',
-      fg: disabled ? '#9ca3af' : '#111827',
-      bd: '#e5e7eb',
-      hover: disabled ? '#f3f4f6' : '#f9fafb',
-    },
-    danger: {
-      bg: disabled ? '#fecaca' : '#dc2626',
-      fg: '#fff',
-      bd: 'transparent',
-      hover: disabled ? '#fecaca' : '#b91c1c',
-    },
-  }[variant]
-
+function Button({ disabled, onClick, children }) {
   return (
     <button
       disabled={disabled}
       onClick={disabled ? undefined : onClick}
       style={{
-        border: `1px solid ${v.bd}`,
-        background: v.bg,
-        color: v.fg,
-        borderRadius: 12,
+        border: '1px solid #e5e7eb',
+        background: disabled ? '#f3f4f6' : '#fff',
+        color: disabled ? '#9ca3af' : '#111827',
+        borderRadius: 14,
         padding: '10px 12px',
-        fontWeight: 800,
+        fontWeight: 900,
         cursor: disabled ? 'not-allowed' : 'pointer',
-        boxShadow: variant === 'primary' ? '0 8px 20px rgba(37,99,235,0.18)' : 'none',
-        transition: 'background .15s ease',
+        boxShadow: '0 10px 24px rgba(0,0,0,0.05)',
+        transition: 'transform .12s ease, background .12s ease',
       }}
       onMouseEnter={(e) => {
         if (disabled) return
-        e.currentTarget.style.background = v.hover
+        e.currentTarget.style.transform = 'translateY(-1px)'
+        e.currentTarget.style.background = '#f9fafb'
       }}
       onMouseLeave={(e) => {
         if (disabled) return
-        e.currentTarget.style.background = v.bg
+        e.currentTarget.style.transform = 'translateY(0px)'
+        e.currentTarget.style.background = '#fff'
       }}
     >
       {children}
@@ -131,178 +235,137 @@ function Card({ title, subtitle, right, children }) {
   return (
     <section
       style={{
-        background: '#fff',
-        border: '1px solid #e5e7eb',
-        borderRadius: 18,
+        background: 'rgba(255,255,255,0.92)',
+        border: '1px solid rgba(229,231,235,0.9)',
+        borderRadius: 22,
         padding: 18,
-        boxShadow: '0 10px 28px rgba(0,0,0,0.06)',
-        marginTop: 14,
+        boxShadow: '0 16px 44px rgba(0,0,0,0.07)',
+        backdropFilter: 'blur(8px)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: 12,
+          flexWrap: 'wrap',
+        }}
+      >
         <div>
-          <div style={{ fontSize: 15, fontWeight: 900, color: '#111827' }}>{title}</div>
-          {subtitle && <div style={{ marginTop: 4, color: '#6b7280', fontSize: 13 }}>{subtitle}</div>}
+          <div style={{ fontSize: 16, fontWeight: 980, color: '#111827' }}>{title}</div>
+          {subtitle && <div style={{ marginTop: 6, color: '#6b7280', fontSize: 13 }}>{subtitle}</div>}
         </div>
         {right}
       </div>
-      <div style={{ marginTop: 12 }}>{children}</div>
+      <div style={{ marginTop: 14 }}>{children}</div>
     </section>
   )
 }
 
-function Field({ label, value, mono, highlight }) {
+function InfoRow({ icon, label, value, mono }) {
   return (
     <div
       style={{
-        display: 'grid',
-        gridTemplateColumns: '190px 1fr',
+        display: 'flex',
         gap: 12,
-        padding: '10px 0',
-        borderBottom: '1px dashed #e5e7eb',
+        alignItems: 'flex-start',
+        padding: '12px 12px',
+        borderRadius: 16,
+        border: '1px solid #eef2f7',
+        background: '#fff',
       }}
     >
-      <div style={{ color: '#6b7280', fontSize: 13, fontWeight: 800 }}>{label}</div>
       <div
         style={{
-          fontWeight: 800,
-          color: highlight ? '#111827' : '#111827',
-          wordBreak: 'break-word',
-          ...(mono ? monospaceStyle() : {}),
+          width: 34,
+          height: 34,
+          borderRadius: 14,
+          display: 'grid',
+          placeItems: 'center',
+          background: '#f3f4f6',
+          border: '1px solid #e5e7eb',
+          color: '#111827',
+          flex: '0 0 auto',
         }}
       >
-        {value ?? '-'}
+        <Icon type={icon} />
+      </div>
+
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ color: '#6b7280', fontWeight: 900, fontSize: 12 }}>{label}</div>
+        <div
+          style={{
+            marginTop: 4,
+            color: '#111827',
+            fontWeight: 950,
+            wordBreak: 'break-word',
+            ...(mono ? monospaceStyle() : {}),
+          }}
+        >
+          {value ?? '-'}
+        </div>
       </div>
     </div>
   )
 }
 
-function Stepper({ step, loading }) {
-  const steps = [
-    { key: 'validate', label: 'ขอ Token (Validate)' },
-    { key: 'deproc', label: 'ขอข้อมูลผู้ใช้ (Deproc)' },
-    { key: 'save', label: 'บันทึกฐานข้อมูล' },
-  ]
-
-  return (
-    <div style={{ display: 'grid', gap: 10 }}>
-      {steps.map((s, idx) => {
-        const isActive = loading && (step === s.key)
-        const isDone = !loading && (step === s.key || (step === 'done' && idx <= 2))
-        const tone = isDone ? 'success' : isActive ? 'info' : 'neutral'
-
-        return (
-          <div
-            key={s.key}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 12,
-              padding: '10px 12px',
-              borderRadius: 14,
-              border: '1px solid #e5e7eb',
-              background: '#fff',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 999,
-                  display: 'grid',
-                  placeItems: 'center',
-                  background: isDone ? '#ecfdf5' : isActive ? '#eff6ff' : '#f3f4f6',
-                  color: isDone ? '#065f46' : isActive ? '#1e40af' : '#6b7280',
-                  border: '1px solid #e5e7eb',
-                }}
-              >
-                {isActive ? <Icon type="load" /> : isDone ? <Icon type="ok" /> : <span style={{ fontWeight: 900 }}>{idx + 1}</span>}
-              </div>
-              <div style={{ fontWeight: 900, color: '#111827' }}>{s.label}</div>
-            </div>
-            <Badge tone={tone}>{isActive ? 'กำลังดำเนินการ' : isDone ? 'สำเร็จ' : 'รอดำเนินการ'}</Badge>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
+/* ----------------------------- page ----------------------------- */
 export default function Home() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-
-  const [appId, setAppId] = useState(null)
-  const [mToken, setMToken] = useState(null)
-
-  const [backendToken, setBackendToken] = useState(null)
-  const [saved, setSaved] = useState(null)
-
-  const [rawOpen, setRawOpen] = useState(false)
-  const [debug, setDebug] = useState(null)
-
-  const [showToken, setShowToken] = useState(false)
-  const [copied, setCopied] = useState(false)
-
-  const [step, setStep] = useState('validate') 
-  const [failedStep, setFailedStep] = useState(null)
-
+  const [deproc, setDeproc] = useState(null)
   const ranRef = useRef(false)
 
   const status = useMemo(() => {
-    if (loading) return { tone: 'warn', text: 'กำลังดำเนินการ' }
-    if (error) return { tone: 'danger', text: 'ไม่สำเร็จ' }
-    if (backendToken || saved) return { tone: 'success', text: 'สำเร็จ' }
-    return { tone: 'neutral', text: 'รอข้อมูล' }
-  }, [loading, error, backendToken, saved])
+    if (loading) return { tone: 'warn', text: 'กำลังดึงข้อมูล Deproc…', icon: 'load' }
+    if (error) return { tone: 'danger', text: 'ไม่สำเร็จ', icon: 'warn' }
+    if (deproc) return { tone: 'success', text: 'ดึงข้อมูลสำเร็จ', icon: 'ok' }
+    return { tone: 'neutral', text: 'รอข้อมูล', icon: 'load' }
+  }, [loading, error, deproc])
+
+  const fullName = useMemo(() => {
+    if (!deproc) return '-'
+    return [deproc.firstName, deproc.lastName].filter(Boolean).join(' ') || '-'
+  }, [deproc])
+
+  const rows = useMemo(() => {
+    if (!deproc) return []
+    return [
+      { icon: 'user', label: 'ชื่อ-นามสกุล', value: fullName },
+      { icon: 'mail', label: 'อีเมล', value: deproc.email ?? '-' },
+      { icon: 'phone', label: 'โทรศัพท์', value: deproc.mobile ?? '-', mono: true },
+      { icon: 'id', label: 'Citizen ID', value: deproc.citizenId ?? '-', mono: true },
+      { icon: 'calendar', label: 'วันเกิด', value: deproc.dateOfBirthString ?? '-', mono: true },
+      { icon: 'bell', label: 'การแจ้งเตือน', value: deproc.notification ?? '-' },
+      // ถ้า backend ส่ง userId มาด้วยและถือว่าเป็น Deproc data ให้โชว์ได้ (เปิดไว้แบบเงื่อนไข)
+      ...(deproc.userId ? [{ icon: 'id', label: 'User ID', value: deproc.userId, mono: true }] : []),
+    ]
+  }, [deproc, fullName])
 
   async function runRequest(signal) {
     setLoading(true)
     setError(null)
-    setBackendToken(null)
-    setSaved(null)
-    setDebug(null)
-    setShowToken(false)
-    setCopied(false)
-    setFailedStep(null)
-    setStep('validate')
+    setDeproc(null)
 
     try {
       const params = new URLSearchParams(window.location.search)
-      const _appId = params.get('appId')
-      const _mToken = params.get('mToken')
+      const appId = params.get('appId')
+      const mToken = params.get('mToken')
 
-      setAppId(_appId)
-      setMToken(_mToken)
-
-      if (!_appId || !_mToken) {
-        throw new Error('ไม่พบพารามิเตอร์ appId หรือ mToken ใน URL')
-      }
+      if (!appId || !mToken) throw new Error('ไม่พบพารามิเตอร์ appId หรือ mToken ใน URL')
 
       const res = await fetch('/api/egov', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ appId: _appId, mToken: _mToken }),
+        body: JSON.stringify({ appId, mToken }),
         signal,
       })
 
-      const contentType = res.headers.get('content-type') || ''
       const text = await res.text().catch(() => '')
       const json = safeJsonParse(text)
 
-      // debug meta
-      setDebug({
-        ok: res.ok,
-        status: res.status,
-        contentType,
-        rawText: (text || '').slice(0, 8000),
-      })
-
       if (!res.ok) {
-        const stepFromApi = json?.step || null
-        if (stepFromApi) setFailedStep(stepFromApi)
         const msg =
           json?.error ||
           json?.message ||
@@ -312,22 +375,18 @@ export default function Home() {
         throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg))
       }
 
+      // ✅ เอาเฉพาะข้อมูลจาก Deproc (พยายามอ่านจากหลาย key เผื่อ backend ส่งชื่อไม่เหมือนกัน)
       const payload = json ?? {}
-      setStep('deproc') 
+      const deprocData = payload?.data || payload?.deproc || payload?.citizen || payload?.saved || null
 
-      const token =
-        payload?.token ||
-        payload?.debug?.step1 || 
-      setBackendToken(payload?.token || null)
+      if (!deprocData || typeof deprocData !== 'object') {
+        throw new Error('ไม่พบข้อมูล Deproc ใน response (ตรวจสอบ payload.data / payload.deproc)')
+      }
 
-      const citizenSaved = payload?.saved || payload?.data || null
-      setSaved(citizenSaved)
-
-      setStep('done')
+      setDeproc(deprocData)
     } catch (err) {
       if (err?.name === 'AbortError') return
       setError(String(err?.message || err))
-      setStep('done')
     } finally {
       setLoading(false)
     }
@@ -336,225 +395,162 @@ export default function Home() {
   useEffect(() => {
     if (ranRef.current) return
     ranRef.current = true
-
     const controller = new AbortController()
     runRequest(controller.signal)
     return () => controller.abort()
   }, [])
-
-  async function copyToken() {
-    if (!backendToken) return
-    try {
-      await navigator.clipboard.writeText(backendToken)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1200)
-    } catch {
-      try {
-        const ta = document.createElement('textarea')
-        ta.value = backendToken
-        document.body.appendChild(ta)
-        ta.select()
-        document.execCommand('copy')
-        document.body.removeChild(ta)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 1200)
-      } catch {}
-    }
-  }
-
-  function toneToIcon(tone) {
-    if (tone === 'success') return <Icon type="ok" />
-    if (tone === 'danger') return <Icon type="warn" />
-    if (tone === 'warn') return <Icon type="load" />
-    return null
-  }
 
   return (
     <main
       style={{
         minHeight: '100vh',
         background:
-          'radial-gradient(1200px 600px at 10% 10%, rgba(37,99,235,0.10), transparent 60%),' +
-          'radial-gradient(900px 420px at 95% 20%, rgba(16,185,129,0.10), transparent 55%),' +
+          'radial-gradient(1200px 600px at 10% 10%, rgba(37,99,235,0.12), transparent 60%),' +
+          'radial-gradient(900px 420px at 95% 20%, rgba(16,185,129,0.12), transparent 55%),' +
+          'radial-gradient(900px 520px at 40% 110%, rgba(99,102,241,0.10), transparent 55%),' +
           '#f8fafc',
       }}
     >
-      <div style={{ maxWidth: 980, margin: '0 auto', padding: 22 }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: 22 }}>
+        {/* Header */}
         <div
           style={{
-            background: '#ffffff',
-            border: '1px solid #e5e7eb',
-            borderRadius: 18,
+            background: 'rgba(255,255,255,0.92)',
+            border: '1px solid rgba(229,231,235,0.9)',
+            borderRadius: 22,
             padding: 18,
-            boxShadow: '0 12px 30px rgba(0,0,0,0.06)',
+            boxShadow: '0 16px 44px rgba(0,0,0,0.07)',
+            backdropFilter: 'blur(8px)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'space-between',
+              gap: 12,
+              flexWrap: 'wrap',
+            }}
+          >
             <div>
-              <div style={{ fontSize: 13, fontWeight: 900, color: '#6b7280', letterSpacing: 0.3 }}>
+              <div style={{ fontSize: 13, fontWeight: 950, color: '#6b7280', letterSpacing: 0.3 }}>
                 ระบบสาธิตการเชื่อมโยงบริการภาครัฐ (DGA / eGov)
               </div>
-              <h1 style={{ margin: '6px 0 0', fontSize: 26, fontWeight: 950, color: '#111827' }}>
-                หน้าจอแสดงผลการยืนยันตัวตนและดึงข้อมูลผู้ใช้
+              <h1 style={{ margin: '10px 0 0', fontSize: 28, fontWeight: 990, color: '#111827' }}>
+                ข้อมูลผู้ใช้จาก Deproc
               </h1>
               <p style={{ margin: '8px 0 0', color: '#6b7280', fontSize: 14 }}>
-                แสดงข้อมูลเป็นหัวข้อ อ่านง่าย พร้อมโหมด Debug สำหรับการตรวจสอบ (แนะนำปิดเมื่อใช้งานจริง)
+                หน้านี้จะแสดงเฉพาะข้อมูลที่ backend ส่งกลับจาก <b>Deproc</b> เท่านั้น
               </p>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <Badge tone={status.tone}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  {toneToIcon(status.tone)}
+                  <Icon type={status.icon} />
                   {status.text}
                 </span>
               </Badge>
 
               <Button
-                variant="ghost"
                 disabled={loading}
                 onClick={() => {
                   const controller = new AbortController()
                   runRequest(controller.signal)
                 }}
               >
-                Retry
+                ดึงข้อมูลใหม่
               </Button>
             </div>
           </div>
         </div>
 
+        {/* Error */}
         {error && (
           <div
             style={{
               marginTop: 14,
               padding: 14,
-              borderRadius: 16,
+              borderRadius: 18,
               background: '#fef2f2',
               border: '1px solid #fecaca',
               color: '#991b1b',
               whiteSpace: 'pre-wrap',
-              fontWeight: 850,
+              fontWeight: 900,
               display: 'flex',
               gap: 10,
               alignItems: 'flex-start',
+              boxShadow: '0 12px 28px rgba(153,27,27,0.08)',
             }}
           >
-            <span style={{ marginTop: 2 }}><Icon type="warn" /></span>
+            <span style={{ marginTop: 2 }}>
+              <Icon type="warn" />
+            </span>
             <div>
-              <div style={{ fontWeight: 950 }}>เกิดข้อผิดพลาดในการดำเนินการ</div>
-              <div style={{ marginTop: 4, fontWeight: 700 }}>
-                {failedStep ? `ขั้นตอนที่ผิดพลาด: ${failedStep}` : null}
-              </div>
-              <div style={{ marginTop: 6, fontWeight: 700 }}>{error}</div>
+              <div style={{ fontWeight: 990 }}>เกิดข้อผิดพลาด</div>
+              <div style={{ marginTop: 6, fontWeight: 850 }}>{error}</div>
             </div>
           </div>
         )}
 
-        {/* Stepper */}
-        <Card
-          title="สถานะการดำเนินการ"
-          subtitle="ลำดับขั้นตอนการเรียกใช้งานบริการ: Validate → Deproc → บันทึกข้อมูล"
-          right={<Badge tone={loading ? 'warn' : error ? 'danger' : 'success'}>{loading ? 'กำลังดำเนินการ' : error ? 'ไม่สำเร็จ' : 'พร้อมใช้งาน'}</Badge>}
-        >
-          <Stepper step={failedStep || step} loading={loading} />
-        </Card>
-
-        {/* Params */}
-        <Card title="พารามิเตอร์จาก URL" subtitle="ค่าที่รับมาจากระบบต้นทาง (Query String)">
-          <Field label="appId" value={appId ? mask(appId, 12, 8) : '-'} mono />
-          <Field label="mToken" value={mToken ? mask(mToken, 12, 8) : '-'} mono />
-        </Card>
-
-        {/* Token */}
-        <Card
-          title="Token สำหรับเรียกบริการ (Validate Result)"
-          subtitle="แสดงแบบย่อโดยค่าเริ่มต้น เพื่อความปลอดภัย"
-          right={
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <Button variant="ghost" disabled={!backendToken} onClick={() => setShowToken(v => !v)}>
-                {showToken ? 'ซ่อน Token' : 'แสดง Token'}
-              </Button>
-              <Button variant="ghost" disabled={!backendToken} onClick={copyToken}>
-                {copied ? 'คัดลอกแล้ว' : 'คัดลอก'}
-              </Button>
-            </div>
-          }
-        >
-          <Field
-            label="token"
-            mono
-            value={
-              backendToken
-                ? showToken
-                  ? <span style={monospaceStyle()}>{backendToken}</span>
-                  : mask(backendToken, 16, 10)
-                : '-'
+        {/* Deproc Card */}
+        <div style={{ marginTop: 14 }}>
+          <Card
+            title="รายละเอียดข้อมูลผู้ใช้ (Deproc)"
+            subtitle={loading ? 'กำลังประมวลผล…' : deproc ? 'ข้อมูลพร้อมใช้งาน' : 'รอการดึงข้อมูล'}
+            right={
+              deproc ? (
+                <Badge tone="info">
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <Icon type="ok" />
+                    Verified
+                  </span>
+                </Badge>
+              ) : (
+                <Badge tone="neutral">—</Badge>
+              )
             }
-          />
-          <div style={{ marginTop: 10, color: '#6b7280', fontSize: 13 }}>
-            หมายเหตุ: เพื่อความปลอดภัย แนะนำให้ปิดการแสดง Token เต็มในระบบใช้งานจริง
-          </div>
-        </Card>
-
-        {/* Citizen */}
-        <Card title="ข้อมูลผู้ใช้ (Citizen Data)" subtitle="ข้อมูลที่ได้รับจาก Deproc และบันทึกลงฐานข้อมูล">
-          {!saved ? (
-            <div style={{ color: '#6b7280', fontWeight: 700 }}>ยังไม่มีข้อมูล (รอ backend ตอบ หรือเกิดข้อผิดพลาด)</div>
-          ) : (
-            <>
-              <Field label="userId" value={saved.userId ?? '-'} mono />
-              <Field label="citizenId" value={saved.citizenId ?? '-'} mono />
-              <Field label="ชื่อ" value={saved.firstName ?? '-'} />
-              <Field label="นามสกุล" value={saved.lastName ?? '-'} />
-              <Field label="วันเกิด" value={saved.dateOfBirthString ?? '-'} mono />
-              <Field label="โทรศัพท์" value={saved.mobile ?? '-'} mono />
-              <Field label="อีเมล" value={saved.email ?? '-'} />
-              <Field label="การแจ้งเตือน" value={saved.notification ?? '-'} />
-            </>
-          )}
-        </Card>
-
-        {/* Debug */}
-        <Card
-          title="Debug (Raw Response)"
-          subtitle="สำหรับตรวจสอบผลลัพธ์ดิบจาก Backend"
-          right={
-            <Button variant="ghost" disabled={!debug} onClick={() => setRawOpen(v => !v)}>
-              {rawOpen ? 'ซ่อน' : 'แสดง'}
-            </Button>
-          }
-        >
-          {!debug ? (
-            <div style={{ color: '#6b7280', fontWeight: 700 }}>ยังไม่มีข้อมูล Debug</div>
-          ) : (
-            <>
-              <Field label="HTTP Status" value={String(debug.status)} mono />
-              <Field label="Content-Type" value={debug.contentType || '-'} mono />
-              {rawOpen && (
-                <pre
-                  style={{
-                    marginTop: 12,
-                    padding: 14,
-                    borderRadius: 16,
-                    background: '#0b1020',
-                    color: '#e5e7eb',
-                    overflowX: 'auto',
-                    whiteSpace: 'pre-wrap',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                  }}
-                >
-                  {debug.rawText || ''}
-                </pre>
-              )}
-            </>
-          )}
-        </Card>
+          >
+            {!deproc ? (
+              <div
+                style={{
+                  padding: 14,
+                  borderRadius: 18,
+                  background: '#fff',
+                  border: '1px dashed #e5e7eb',
+                  color: '#6b7280',
+                  fontWeight: 900,
+                }}
+              >
+                {loading ? 'กำลังโหลดข้อมูลจาก Deproc…' : 'ยังไม่มีข้อมูล (กรุณาตรวจสอบว่า backend ส่งข้อมูล Deproc กลับมาหรือไม่)'}
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                  gap: 12,
+                }}
+              >
+                {rows.map((r, i) => (
+                  <InfoRow key={i} icon={r.icon} label={r.label} value={r.value} mono={r.mono} />
+                ))}
+              </div>
+            )}
+          </Card>
+        </div>
 
         <footer style={{ marginTop: 18, color: '#9ca3af', fontSize: 12, textAlign: 'center' }}>
-          © {new Date().getFullYear()} • DGA Demo UI • สำหรับสาธิตและทดสอบการเชื่อมต่อเท่านั้น
+          © {new Date().getFullYear()} • DGA Demo UI • แสดงผลเฉพาะ Deproc Data
         </footer>
       </div>
+
+      {/* Responsive: ถ้าจอเล็กให้เหลือ 1 คอลัมน์ */}
+      <style>{`
+        @media (max-width: 720px) {
+          section > div > div + div { margin-top: 12px; }
+        }
+      `}</style>
     </main>
   )
 }
