@@ -316,6 +316,7 @@ export default function Home() {
   const [error, setError] = useState(null)
   const [deproc, setDeproc] = useState(null)
   const ranRef = useRef(false)
+  
 
   const status = useMemo(() => {
     if (loading) return { tone: 'warn', text: 'กำลังดึงข้อมูล Deproc…', icon: 'load' }
@@ -354,12 +355,11 @@ export default function Home() {
       const mToken = params.get('mToken')
 
       if (!appId || !mToken) throw new Error('ไม่พบพารามิเตอร์ appId หรือ mToken ใน URL')
-
-      const res = await fetch('/api/egov', {
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL
+      const res = await fetch(`${API_BASE}/api/egov`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ appId, mToken }),
-        signal,
       })
 
       const text = await res.text().catch(() => '')
