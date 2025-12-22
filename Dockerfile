@@ -1,8 +1,14 @@
-FROM node:18-alpine
+FROM node:20-alpine
+
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm ci --silent || npm install --silent
+
+COPY package*.json ./
+RUN npm ci
+
 COPY . .
-RUN npm run build
+
+# Next dev
+ENV PORT=3019
 EXPOSE 3019
-CMD ["npm", "start"]
+
+CMD ["npm", "run", "dev", "--", "-p", "3019"]
