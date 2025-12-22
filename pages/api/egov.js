@@ -65,7 +65,6 @@ export default async function handler(req, res) {
   const debugInfo = { step1: null, step2: null, step3: false }
 
   try {
-    // ✅ Step 1: validate -> token
     const validateUrl =
       `https://api.egov.go.th/ws/auth/validate` +
       `?ConsumerSecret=${encodeURIComponent(consumerSecret)}` +
@@ -101,7 +100,7 @@ export default async function handler(req, res) {
 
     debugInfo.step1 = maskToken(token)
 
-    // ✅ Step 2: deproc -> profile 
+
     const deprocUrl = process.env.DEPROC_API_URL
       || 'https://api.egov.go.th/ws/dga/czp/uat/v1/core/shield/data/deproc'
 
@@ -134,7 +133,7 @@ export default async function handler(req, res) {
       throw new Error('Deproc returned NULL (Token expired / wrong response shape / wrong body keys)')
     }
 
-    // ✅ Step 3: Save DB 
+   
     await connectToDatabase()
 
     const saved = {
@@ -154,7 +153,7 @@ export default async function handler(req, res) {
       {
         $set: {
           ...saved,
-          appId, // ถ้าคุณอยากเก็บ appId ด้วย
+          appId, 
           updatedAt: new Date(),
         },
         $setOnInsert: { createdAt: new Date() },

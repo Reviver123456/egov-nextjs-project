@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-/* ----------------------------- utils ----------------------------- */
 function safeJsonParse(text) {
   if (!text || !text.trim()) return null
   try {
@@ -19,7 +18,7 @@ function monospaceStyle() {
   }
 }
 
-/* ----------------------------- UI bits ----------------------------- */
+
 function Icon({ type }) {
   const base = { width: 18, height: 18, display: 'inline-block' }
 
@@ -344,14 +343,14 @@ export default function Home() {
 
       if (!appId || !mToken) throw new Error('ไม่พบพารามิเตอร์ appId หรือ mToken ใน URL')
 
-      // ✅ ยิงตรงไปที่ endpoint ที่ต้องการ
+
       const ENDPOINT = 'https://czp-staging.biza.me/test6/api/egov/'
 
       const res = await fetch(ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ appId, mToken }),
-        signal, // ✅ ให้ AbortController ใช้งานได้จริง
+        signal, 
       })
 
       const text = await res.text().catch(() => '')
@@ -367,7 +366,6 @@ export default function Home() {
         throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg))
       }
 
-      // ✅ เอาเฉพาะข้อมูลจาก Deproc (รองรับหลายรูปแบบ)
       const payload = json ?? {}
       const deprocData =
         payload?.data ||
