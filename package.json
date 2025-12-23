@@ -1,0 +1,15 @@
+{
+  "name": "egov-app-final",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3019",
+    "build": "next build",
+    "start": "next start -p 3019"
+  },
+  "dependencies": {
+    "next": "14.1.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "mongoose": "^8.0.0"
+  }
+}
